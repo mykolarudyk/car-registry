@@ -7,6 +7,7 @@ import { switchMap } from 'rxjs/operators';
 import { CarListComponent } from './car-list.component';
 import { CarService } from '../../../services/car.service';
 import { Car } from '../../../models/car.model';
+import { CarConstants } from '../../../constants/car.constants';
 
 describe('CarListComponent', () => {
   let component: CarListComponent;
@@ -337,8 +338,8 @@ describe('CarListComponent', () => {
       component.openCreateInline();
 
       expect(component.creatingInline()).toBe(true);
-      expect(component.editingId()).toBe('__new__');
-      expect(component.rows().some(r => r.id === '__new__')).toBe(true);
+      expect(component.editingId()).toBe(CarConstants.NEW_ROW_ID);
+      expect(component.rows().some(r => r.id === CarConstants.NEW_ROW_ID)).toBe(true);
     });
 
     it('should not open inline create if already editing', () => {
@@ -360,7 +361,7 @@ describe('CarListComponent', () => {
     it('should discard inline create', () => {
       setupComponentWithData();
       component.openCreateInline();
-      const newRow = component.rows().find(r => r.id === '__new__');
+      const newRow = component.rows().find(r => r.id === CarConstants.NEW_ROW_ID);
       expect(newRow).toBeTruthy();
 
       if (newRow) {
@@ -369,7 +370,7 @@ describe('CarListComponent', () => {
 
       expect(component.creatingInline()).toBe(false);
       expect(component.editingId()).toBe(null);
-      expect(component.rows().some(r => r.id === '__new__')).toBe(false);
+      expect(component.rows().some(r => r.id === CarConstants.NEW_ROW_ID)).toBe(false);
     });
 
     it('should create car via inline form', fakeAsync(() => {
@@ -379,7 +380,7 @@ describe('CarListComponent', () => {
       carService.list.and.returnValue(of(mockPageResponse));
 
       component.openCreateInline();
-      const newRow = component.rows().find(r => r.id === '__new__')!;
+      const newRow = component.rows().find(r => r.id === CarConstants.NEW_ROW_ID)!;
       
       component.control(newRow, 'model').setValue('New Car');
       component.control(newRow, 'brand').setValue('Brand');

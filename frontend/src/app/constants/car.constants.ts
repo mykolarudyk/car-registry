@@ -24,5 +24,8 @@ export const CarConstants = {
   // Inline create defaults
   INLINE_CREATE_DEFAULT_YEAR: 1,
   INLINE_CREATE_DEFAULT_PRICE: 0.01,
+  
+  // Special IDs
+  NEW_ROW_ID: '__new__',
 };
 

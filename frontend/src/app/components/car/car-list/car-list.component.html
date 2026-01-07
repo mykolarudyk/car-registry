@@ -166,7 +166,13 @@
             >
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button color="warn" (click)="remove(c)" aria-label="Delete">
+            <button
+              mat-icon-button
+              color="warn"
+              (click)="remove(c)"
+              aria-label="Delete"
+              [disabled]="(editingId() && !isEditing(c.id)) || showNewForm() || creatingInline()"
+            >
               <mat-icon>delete</mat-icon>
             </button>
           } @else {

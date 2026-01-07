@@ -23,8 +23,6 @@ type CarForm = FormGroup<{
   price: FormControl<number>;
 }>;
 
-const NEW_ID = '__new__';
-
 @Component({
   selector: 'app-car-list',
   standalone: true,
@@ -60,6 +58,7 @@ export class CarListComponent implements AfterViewInit{
 
   private forms = new Map<string, CarForm>();
   private refreshTrigger = new Subject<void>();
+  private isSortChange = false;
   showNewForm = signal(false);
   creatingInline = signal(false);
   editingId = signal<string | null>(null);
@@ -78,16 +77,156 @@ export class CarListComponent implements AfterViewInit{
   createFormDir!: FormGroupDirective;
 
   ngAfterViewInit(): void {
-    this.sort.sortChange
-      .pipe(takeUntilDestroyedRxjs(this.destroyRef))
-      .subscribe(() => {
-        if (this.paginator.pageIndex !== CarConstants.DEFAULT_PAGE) {
-          this.paginator.pageIndex = CarConstants.DEFAULT_PAGE;
-        }
-      });
+    this.setupDataLoading();
+  }
 
+  startEdit(row: Car) {
+    const current = this.editingId();
+    if (current && current !== row.id) {
+      const prev = this.rows().find(r => r.id === current);
+      if (prev) this.cancelEdit(prev);
+    }
+    this.formFor(row);
+    this.editingId.set(row.id);
+  }
+
+  cancelEdit(row: Car) {
+    const form = this.forms.get(row.id);
+    if (form) form.reset({
+      model: row.model,
+      brand: row.brand,
+      productionYear: row.productionYear,
+      price: row.price,
+    });
+    if (this.editingId() === row.id) this.editingId.set(null);
+    if (row.id === CarConstants.NEW_ROW_ID) {
+      this.rows.update(rs => rs.filter(r => r.id !== CarConstants.NEW_ROW_ID));
+      this.forms.delete(CarConstants.NEW_ROW_ID);
+      this.creatingInline.set(false);
+    }
+  }
+
+  save(row: Car) {
+    const form = this.formFor(row);
+    if (form.invalid) { form.markAllAsTouched(); return; }
+    const { model, brand, productionYear, price } = form.getRawValue();
+    this.loading.set(true);
+    
+    const operation = row.id === CarConstants.NEW_ROW_ID
+      ? this.carService.create({ model, brand, productionYear, price })
+      : this.carService.update(row.id, { model, brand, productionYear, price });
+
+    operation
+      .pipe(
+        takeUntilDestroyedRxjs(this.destroyRef),
+        finalize(() => this.loading.set(false))
+      )
+      .subscribe({
+        next: () => {
+          if (row.id === CarConstants.NEW_ROW_ID) {
+            this.editingId.set(null);
+            this.creatingInline.set(false);
+            this.forms.delete(CarConstants.NEW_ROW_ID);
+            this.refreshCurrentPage(true);
+          } else {
+            this.editingId.set(null);
+            this.refreshCurrentPage();
+          }
+        },
+        error: () => {}
+      });
+  }
+
+  remove(row: Car) {
+    if (!confirm(`Delete "${row.model}"?`)) return;
+    this.loading.set(true);
+    this.carService.delete(row.id)
+      .pipe(
+        takeUntilDestroyedRxjs(this.destroyRef),
+        finalize(() => this.loading.set(false))
+      )
+      .subscribe({
+        next: () => {
+          this.forms.delete(row.id);
+          this.refreshCurrentPage();
+        },
+        error: () => {}
+      });
+  }
+
+  create() {
+    if (this.newForm.invalid) {
+      this.newForm.markAllAsTouched();
+      return;
+    }
+    const body = this.newForm.getRawValue();
+    this.loading.set(true);
+    this.carService.create(body)
+      .pipe(
+        takeUntilDestroyedRxjs(this.destroyRef),
+        finalize(() => this.loading.set(false))
+      )
+      .subscribe({
+        next: () => {
+          if (this.createFormDir) {
+            this.createFormDir.resetForm({ model: '', brand: '', productionYear: 0, price: 0 });
+          } else {
+            this.newForm.reset({ model: '', brand: '', productionYear: 0, price: 0 });
+          }
+          this.showNewForm.set(false);
+          this.refreshCurrentPage(true);
+        },
+        error: () => {}
+      });
+  }
+
+  openCreateInline() {
+    if (this.editingId() || this.creatingInline()) return;
+    const newRow: Car = { id: CarConstants.NEW_ROW_ID, model: '', brand: '', productionYear: CarConstants.INLINE_CREATE_DEFAULT_YEAR, price: CarConstants.INLINE_CREATE_DEFAULT_PRICE };
+    this.rows.update(rs => [newRow, ...rs]);
+    this.forms.set(CarConstants.NEW_ROW_ID, this.fb.group({
+      model: this.fb.control('', { validators: [Validators.required, Validators.maxLength(CarConstants.FIELD_MAX_LENGTH)] }),
+      brand: this.fb.control('', { validators: [Validators.required, Validators.maxLength(CarConstants.FIELD_MAX_LENGTH)] }),
+      productionYear: this.fb.control(CarConstants.INLINE_CREATE_DEFAULT_YEAR, { validators: [Validators.required, Validators.min(CarConstants.PRODUCTION_YEAR_MIN), Validators.max(CarConstants.PRODUCTION_YEAR_MAX)] }),
+      price: this.fb.control(CarConstants.INLINE_CREATE_DEFAULT_PRICE, { validators: [Validators.required, Validators.min(CarConstants.PRICE_MIN), Validators.max(CarConstants.PRICE_MAX)] }),
+    }));
+    this.editingId.set(CarConstants.NEW_ROW_ID);
+    this.creatingInline.set(true);
+  }
+
+  openCreateForm() {
+    if (this.editingId()) return;
+    this.showNewForm.set(true);
+  }
+
+  discardCreate() {
+    if (this.createFormDir) {
+      this.createFormDir.resetForm({ model: '', brand: '', productionYear: 0, price: 0 });
+    } else {
+      this.newForm.reset({ model: '', brand: '', productionYear: 0, price: 0 });
+      Object.values(this.newForm.controls).forEach(c => { c.markAsPristine(); c.markAsUntouched(); });
+    }
+    this.showNewForm.set(false);
+  }
+
+  rowInvalid(row: Car) {
+    return this.formFor(row).invalid;
+  }
+
+  control<K extends keyof CarForm['controls']>(row: Car, key: K): CarForm['controls'][K] {
+    return this.formFor(row).controls[key];
+  }
+
+  private setupDataLoading(): void {
     const dataSource = merge(
-      this.sort.sortChange,
+      this.sort.sortChange.pipe(
+        tap(() => {
+          this.isSortChange = true;
+          if (this.paginator.pageIndex !== CarConstants.DEFAULT_PAGE) {
+            this.paginator.pageIndex = CarConstants.DEFAULT_PAGE;
+          }
+        })
+      ),
       this.paginator.page,
       this.refreshTrigger
     );
@@ -100,12 +239,15 @@ export class CarListComponent implements AfterViewInit{
         switchMap(() => {
           this.loading.set(true);
           const sortExpr = `${this.sort.active || CarConstants.DEFAULT_SORT_FIELD},${this.sort.direction || CarConstants.DEFAULT_SORT_DIRECTION}`;
-          const page = this.paginator.pageIndex ?? CarConstants.DEFAULT_PAGE;
+          const page = this.isSortChange ? CarConstants.DEFAULT_PAGE : (this.paginator.pageIndex ?? CarConstants.DEFAULT_PAGE);
           const size = this.paginator.pageSize || this.pageSize;
+          this.isSortChange = false;
           return this.carService.list(page, size, sortExpr).pipe(
             tap(page => {
               this.total.set(page.totalElements ?? 0);
               this.rows.set(page.content ?? []);
+              
+              this.resetInlineState();
             }),
             catchError(() => {
               this.total.set(0);
@@ -134,146 +276,23 @@ export class CarListComponent implements AfterViewInit{
     return form;
   }
 
-  startEdit(row: Car) {
-    const current = this.editingId();
-    if (current && current !== row.id) {
-      const prev = this.rows().find(r => r.id === current);
-      if (prev) this.cancelEdit(prev);
-    }
-    this.formFor(row);
-    this.editingId.set(row.id);
-  }
-
-  cancelEdit(row: Car) {
-    const form = this.forms.get(row.id);
-    if (form) form.reset({
-      model: row.model,
-      brand: row.brand,
-      productionYear: row.productionYear,
-      price: row.price,
-    });
-    if (this.editingId() === row.id) this.editingId.set(null);
-    if (row.id === NEW_ID) {
-      this.rows.update(rs => rs.filter(r => r.id !== NEW_ID));
-      this.forms.delete(NEW_ID);
+  private resetInlineState(): void {
+    if (this.creatingInline() || this.editingId()) {
+      const currentEditingId = this.editingId();
+      if (currentEditingId) {
+        this.forms.delete(currentEditingId);
+      }
       this.creatingInline.set(false);
+      this.editingId.set(null);
     }
   }
 
-  save(row: Car) {
-    const form = this.formFor(row);
-    if (form.invalid) { form.markAllAsTouched(); return; }
-    const { model, brand, productionYear, price } = form.getRawValue();
-    this.loading.set(true);
-    
-    const operation = row.id === NEW_ID
-      ? this.carService.create({ model, brand, productionYear, price })
-      : this.carService.update(row.id, { model, brand, productionYear, price });
-
-    operation
-      .pipe(
-        takeUntilDestroyedRxjs(this.destroyRef),
-        finalize(() => this.loading.set(false))
-      )
-      .subscribe({
-        next: () => {
-          if (row.id === NEW_ID) {
-            this.editingId.set(null);
-            this.creatingInline.set(false);
-            this.forms.delete(NEW_ID);
-            this._refreshCurrentPage(true);
-          } else {
-            this.editingId.set(null);
-            this._refreshCurrentPage();
-          }
-        },
-        error: () => {}
-      });
-  }
-
-  remove(row: Car) {
-    if (!confirm(`Delete "${row.model}"?`)) return;
-    this.loading.set(true);
-    this.carService.delete(row.id)
-      .pipe(
-        takeUntilDestroyedRxjs(this.destroyRef),
-        finalize(() => this.loading.set(false))
-      )
-      .subscribe({
-        next: () => this._refreshCurrentPage(),
-        error: () => {}
-      });
-  }
-
-  create() {
-    if (this.newForm.invalid) {
-      this.newForm.markAllAsTouched();
-      return;
-    }
-    const body = this.newForm.getRawValue();
-    this.loading.set(true);
-    this.carService.create(body)
-      .pipe(
-        takeUntilDestroyedRxjs(this.destroyRef),
-        finalize(() => this.loading.set(false))
-      )
-      .subscribe({
-        next: () => {
-          if (this.createFormDir) {
-            this.createFormDir.resetForm({ model: '', brand: '', productionYear: 0, price: 0 });
-          } else {
-            this.newForm.reset({ model: '', brand: '', productionYear: 0, price: 0 });
-          }
-          this.showNewForm.set(false);
-          this._refreshCurrentPage(true);
-        },
-        error: () => {}
-      });
-  }
-
-  openCreateInline() {
-    if (this.editingId() || this.creatingInline()) return;
-    const newRow: Car = { id: NEW_ID, model: '', brand: '', productionYear: CarConstants.INLINE_CREATE_DEFAULT_YEAR, price: CarConstants.INLINE_CREATE_DEFAULT_PRICE };
-    this.rows.update(rs => [newRow, ...rs]);
-    this.forms.set(NEW_ID, this.fb.group({
-      model: this.fb.control('', { validators: [Validators.required, Validators.maxLength(CarConstants.FIELD_MAX_LENGTH)] }),
-      brand: this.fb.control('', { validators: [Validators.required, Validators.maxLength(CarConstants.FIELD_MAX_LENGTH)] }),
-      productionYear: this.fb.control(CarConstants.INLINE_CREATE_DEFAULT_YEAR, { validators: [Validators.required, Validators.min(CarConstants.PRODUCTION_YEAR_MIN), Validators.max(CarConstants.PRODUCTION_YEAR_MAX)] }),
-      price: this.fb.control(CarConstants.INLINE_CREATE_DEFAULT_PRICE, { validators: [Validators.required, Validators.min(CarConstants.PRICE_MIN), Validators.max(CarConstants.PRICE_MAX)] }),
-    }));
-    this.editingId.set(NEW_ID);
-    this.creatingInline.set(true);
-  }
-
-  private _refreshCurrentPage(goToFirst = false) {
+  private refreshCurrentPage(goToFirst = false): void {
     if (goToFirst && this.paginator.pageIndex !== CarConstants.DEFAULT_PAGE) {
       this.paginator.firstPage();
     } else {
       this.refreshTrigger.next();
     }
-  }
-
-  openCreateForm() {
-    if (this.editingId()) return;
-    this.showNewForm.set(true);
-  }
-
-  discardCreate() {
-    if (this.createFormDir) {
-      this.createFormDir.resetForm({ model: '', brand: '', productionYear: 0, price: 0 });
-    } else {
-      this.newForm.reset({ model: '', brand: '', productionYear: 0, price: 0 });
-      Object.values(this.newForm.controls).forEach(c => { c.markAsPristine(); c.markAsUntouched(); });
-    }
-    this.showNewForm.set(false);
-  }
-
-  rowInvalid(row: Car) {
-    return this.formFor(row).invalid;
-  }
-
-  control<K extends keyof CarForm['controls']>(row: Car, key: K): CarForm['controls'][K] {
-    return this.formFor(row).controls[key];
   }
 
 }
