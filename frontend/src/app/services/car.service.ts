@@ -24,11 +24,11 @@ export class CarService {
   }
 
   create(body: Omit<Car, 'id'>) {
-    return this.http.post<Car>(this.base, body as any);
+    return this.http.post<Car>(this.base, body);
   }
 
   update(id: string, body: Omit<Car, 'id'>) {
-    return this.http.put<Car>(`${this.base}/${id}`, body as any);
+    return this.http.put<Car>(`${this.base}/${id}`, body);
   }
 
   delete(id: string) {
