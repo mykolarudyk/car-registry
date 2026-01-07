@@ -1,8 +1,9 @@
-package com.example.backend.fish.api;
+package com.example.backend.car.api;
 
-import static com.example.backend.fish.api.FishDtos.*;
+import static com.example.backend.car.api.CarDtos.*;
+import static com.example.backend.car.constants.CarConstants.*;
 
-import com.example.backend.fish.app.FishService;
+import com.example.backend.car.app.CarService;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -13,34 +14,34 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/fish")
+@RequestMapping("/api/v1/car")
 @Validated
-public class FishController {
+public class CarController {
 
-  private final FishService svc;
+  private final CarService svc;
 
-  public FishController(FishService svc) {
+  public CarController(CarService svc) {
     this.svc = svc;
   }
 
   @GetMapping
-  public Page<FishResponse> list(@PageableDefault(size = 20, sort = "name") Pageable pageable) {
+  public Page<CarResponse> list(@PageableDefault(size = DEFAULT_PAGE_SIZE, sort = DEFAULT_SORT_FIELD) Pageable pageable) {
     return svc.list(pageable);
   }
 
   @GetMapping("{id}")
-  public FishResponse get(@PathVariable UUID id) {
+  public CarResponse get(@PathVariable UUID id) {
     return svc.get(id);
   }
 
   @PostMapping
-  public ResponseEntity<FishResponse> create(@RequestBody @Valid FishRequest req) {
+  public ResponseEntity<CarResponse> create(@RequestBody @Valid CarRequest req) {
     var created = svc.create(req);
     return ResponseEntity.created(created.location()).body(svc.get(created.id()));
   }
 
   @PutMapping("{id}")
-  public FishResponse update(@PathVariable UUID id, @RequestBody @Valid FishRequest req) {
+  public CarResponse update(@PathVariable UUID id, @RequestBody @Valid CarRequest req) {
     return svc.update(id, req);
   }
 
@@ -50,3 +51,4 @@ public class FishController {
     return ResponseEntity.noContent().build();
   }
 }
+

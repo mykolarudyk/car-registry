@@ -1,13 +1,13 @@
-package com.example.backend.fish.app;
+package com.example.backend.car.app;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import com.example.backend.fish.api.FishDtos.FishRequest;
-import com.example.backend.fish.domain.Fish;
-import com.example.backend.fish.infra.FishRepository;
+import com.example.backend.car.api.CarDtos.CarRequest;
+import com.example.backend.car.domain.Car;
+import com.example.backend.car.infra.CarRepository;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.util.Optional;
@@ -20,34 +20,34 @@ import org.springframework.data.domain.*;
 import org.springframework.web.server.ResponseStatusException;
 
 @ExtendWith(MockitoExtension.class)
-class FishServiceTest {
+class CarServiceTest {
 
-  @Mock FishRepository repo;
-  @InjectMocks FishService svc;
+  @Mock CarRepository repo;
+  @InjectMocks CarService svc;
 
   @Test
   void listMapsEntitiesToResponses() {
-    var e = new Fish("A", "B", 12, bd("1.23"));
+    var e = new Car("A", "B", 2020, bd("12300.00"));
     var page = new PageImpl<>(java.util.List.of(e), PageRequest.of(0, 20), 1);
     when(repo.findAll(any(Pageable.class))).thenReturn(page);
 
     var res = svc.list(PageRequest.of(0, 20));
     assertThat(res.getTotalElements()).isEqualTo(1);
     assertThat(res.getContent()).hasSize(1);
-    assertThat(res.getContent().get(0).name()).isEqualTo("A");
+    assertThat(res.getContent().get(0).model()).isEqualTo("A");
   }
 
   @Test
   void getReturnsMappedResponse() {
-    var e = new Fish("A", "B", 12, bd("1.23"));
+    var e = new Car("A", "B", 2020, bd("12300.00"));
     var id = UUID.randomUUID();
     e.setId(id);
     when(repo.findById(id)).thenReturn(Optional.of(e));
 
     var res = svc.get(id);
     assertThat(res.id()).isEqualTo(id);
-    assertThat(res.length()).isEqualTo(12);
-    assertThat(res.weight()).isEqualByComparingTo("1.23");
+    assertThat(res.productionYear()).isEqualTo(2020);
+    assertThat(res.price()).isEqualByComparingTo("12300.00");
   }
 
   @Test
@@ -61,30 +61,30 @@ class FishServiceTest {
 
   @Test
   void createSavesAndReturnsLocation() {
-    var req = new FishRequest("X", "Y", 5, bd("0.50"));
-    var saved = new Fish(req.name(), req.species(), req.length(), req.weight());
+    var req = new CarRequest("X", "Y", 2021, bd("15000.00"));
+    var saved = new Car(req.model(), req.brand(), req.productionYear(), req.price());
     saved.setId(UUID.randomUUID());
-    when(repo.save(any(Fish.class))).thenReturn(saved);
+    when(repo.save(any(Car.class))).thenReturn(saved);
 
     var created = svc.create(req);
     assertThat(created.id()).isEqualTo(saved.getId());
-    assertThat(created.location()).isEqualTo(URI.create("/api/fish/" + saved.getId()));
+    assertThat(created.location()).isEqualTo(URI.create("/api/v1/car/" + saved.getId()));
   }
 
   @Test
   void updateRewritesFields() {
     var id = UUID.randomUUID();
-    var existing = new Fish("A", "B", 10, bd("1.00"));
+    var existing = new Car("A", "B", 2020, bd("10000.00"));
     existing.setId(id);
     when(repo.findById(id)).thenReturn(Optional.of(existing));
 
-    var req = new FishRequest("A2", "B2", 20, bd("2.00"));
+    var req = new CarRequest("A2", "B2", 2021, bd("20000.00"));
     var res = svc.update(id, req);
 
-    assertThat(res.name()).isEqualTo("A2");
-    assertThat(res.species()).isEqualTo("B2");
-    assertThat(res.length()).isEqualTo(20);
-    assertThat(res.weight()).isEqualByComparingTo("2.00");
+    assertThat(res.model()).isEqualTo("A2");
+    assertThat(res.brand()).isEqualTo("B2");
+    assertThat(res.productionYear()).isEqualTo(2021);
+    assertThat(res.price()).isEqualByComparingTo("20000.00");
   }
 
   @Test
@@ -92,7 +92,7 @@ class FishServiceTest {
     var id = UUID.randomUUID();
     when(repo.findById(id)).thenReturn(Optional.empty());
 
-    var req = new FishRequest("A", "B", 10, bd("1.00"));
+    var req = new CarRequest("A", "B", 2020, bd("10000.00"));
     var ex = assertThrows(ResponseStatusException.class, () -> svc.update(id, req));
     assertThat(ex.getStatusCode().value()).isEqualTo(404);
   }
@@ -119,3 +119,4 @@ class FishServiceTest {
     return new BigDecimal(value);
   }
 }
+

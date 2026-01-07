@@ -6,7 +6,7 @@
   gap: 16px;
 }
 
-.fish-form {
+.car-form {
   display: grid;
   grid-template-columns: 1fr 1fr 160px 160px auto;
   gap: 12px;
@@ -30,10 +30,10 @@
   caret-color: transparent;
 }
 
-.mat-column-name    { width: 34%; }
-.mat-column-species { width: 34%; }
-.mat-column-length  { width: 120px; }
-.mat-column-weight  { width: 140px; }
+.mat-column-model    { width: 34%; }
+.mat-column-brand { width: 34%; }
+.mat-column-productionYear  { width: 120px; }
+.mat-column-price  { width: 140px; }
 .mat-column-actions { width: 96px; }
 
 ::ng-deep .mat-mdc-table .mat-mdc-header-cell,
@@ -72,3 +72,4 @@
 .form-actions .submit {
   margin-right: 8px;
 }
+

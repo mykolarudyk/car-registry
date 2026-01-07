@@ -1,4 +1,4 @@
-package com.example.backend.fish.api;
+package com.example.backend.car.api;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doThrow;
@@ -6,9 +6,9 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.example.backend.fish.api.FishDtos.FishRequest;
-import com.example.backend.fish.api.FishDtos.FishResponse;
-import com.example.backend.fish.app.FishService;
+import com.example.backend.car.api.CarDtos.CarRequest;
+import com.example.backend.car.api.CarDtos.CarResponse;
+import com.example.backend.car.app.CarService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.net.URI;
@@ -27,72 +27,72 @@ import org.springframework.web.server.ResponseStatusException;
 
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-@WebMvcTest(FishController.class)
-class FishControllerTest {
+@WebMvcTest(CarController.class)
+class CarControllerTest {
 
   @Autowired MockMvc mvc;
   @Autowired ObjectMapper om;
 
   @MockitoBean
-  private FishService svc;
+  private CarService svc;
 
   @Test
   void listReturnsPage() throws Exception {
-    var resp = new FishResponse(UUID.randomUUID(), "A", "B", 10, bd("1.00"));
+    var resp = new CarResponse(UUID.randomUUID(), "A", "B", 2020, bd("10000.00"));
     var page = new PageImpl<>(List.of(resp), PageRequest.of(0, 20), 1);
     when(svc.list(any(Pageable.class))).thenReturn(page);
 
-    mvc.perform(get("/api/fish"))
+    mvc.perform(get("/api/v1/car"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content[0].name").value("A"))
+        .andExpect(jsonPath("$.content[0].model").value("A"))
         .andExpect(jsonPath("$.totalElements").value(1));
   }
 
   @Test
   void getByIdReturnsEntity() throws Exception {
     var id = UUID.randomUUID();
-    var resp = new FishResponse(id, "A", "B", 10, bd("1.00"));
+    var resp = new CarResponse(id, "A", "B", 2020, bd("10000.00"));
     when(svc.get(id)).thenReturn(resp);
 
-    mvc.perform(get("/api/fish/{id}", id))
+    mvc.perform(get("/api/v1/car/{id}", id))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(id.toString()))
-        .andExpect(jsonPath("$.length").value(10));
+        .andExpect(jsonPath("$.productionYear").value(2020));
   }
 
   @Test
   void getMissingReturns404() throws Exception {
     var id = UUID.randomUUID();
-    when(svc.get(id)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Fish " + id + " not found"));
+    when(svc.get(id)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Car " + id + " not found"));
 
-    mvc.perform(get("/api/fish/{id}", id))
+    mvc.perform(get("/api/v1/car/{id}", id))
         .andExpect(status().isNotFound());
   }
 
   @Test
   void createReturns201WithLocationAndBody() throws Exception {
     var id = UUID.randomUUID();
-    var req = new FishRequest("A", "B", 10, bd("1.00"));
-    var resp = new FishResponse(id, "A", "B", 10, bd("1.00"));
+    var req = new CarRequest("A", "B", 2020, bd("10000.00"));
+    var resp = new CarResponse(id, "A", "B", 2020, bd("10000.00"));
 
-    when(svc.create(any(FishRequest.class))).thenReturn(new com.example.backend.fish.app.FishService.Created(id, URI.create("/api/fish/" + id)));
+    when(svc.create(any(CarRequest.class))).thenReturn(new com.example.backend.car.app.CarService.Created(id, URI.create("/api/v1/car/" + id)));
     when(svc.get(id)).thenReturn(resp);
 
-    mvc.perform(post("/api/fish")
+    mvc.perform(post("/api/v1/car")
             .contentType(MediaType.APPLICATION_JSON)
             .content(om.writeValueAsString(req)))
         .andExpect(status().isCreated())
-        .andExpect(header().string("Location", "/api/fish/" + id))
+        .andExpect(header().string("Location", "/api/v1/car/" + id))
         .andExpect(jsonPath("$.id").value(id.toString()))
-        .andExpect(jsonPath("$.name").value("A"));
+        .andExpect(jsonPath("$.model").value("A"));
   }
 
   @Test
   void validationErrorReturns400() throws Exception {
     var badJson = """
-      {"name":"","species":"","length":0,"weight":0}
+      {"model":"","brand":"","productionYear":0,"price":0}
       """;
-    mvc.perform(post("/api/fish")
+    mvc.perform(post("/api/v1/car")
             .contentType(MediaType.APPLICATION_JSON)
             .content(badJson))
         .andExpect(status().isBadRequest());
@@ -101,34 +101,34 @@ class FishControllerTest {
   @Test
   void updateReturnsUpdatedBody() throws Exception {
     var id = UUID.randomUUID();
-    var req = new FishRequest("A2", "B2", 20, bd("2.00"));
-    var resp = new FishResponse(id, "A2", "B2", 20, bd("2.00"));
+    var req = new CarRequest("A2", "B2", 2021, bd("20000.00"));
+    var resp = new CarResponse(id, "A2", "B2", 2021, bd("20000.00"));
 
-    when(svc.update(eq(id), any(FishRequest.class))).thenReturn(resp);
+    when(svc.update(eq(id), any(CarRequest.class))).thenReturn(resp);
 
-    mvc.perform(put("/api/fish/{id}", id)
+    mvc.perform(put("/api/v1/car/{id}", id)
             .contentType(MediaType.APPLICATION_JSON)
             .content(om.writeValueAsString(req)))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.name").value("A2"))
-        .andExpect(jsonPath("$.length").value(20))
-        .andExpect(jsonPath("$.weight").value(2.0));
+        .andExpect(jsonPath("$.model").value("A2"))
+        .andExpect(jsonPath("$.productionYear").value(2021))
+        .andExpect(jsonPath("$.price").value(20000.0));
   }
 
   @Test
   void deleteReturns204() throws Exception {
     var id = UUID.randomUUID();
-    mvc.perform(delete("/api/fish/{id}", id))
+    mvc.perform(delete("/api/v1/car/{id}", id))
         .andExpect(status().isNoContent());
   }
 
   @Test
   void deleteMissingReturns404() throws Exception {
     var id = UUID.randomUUID();
-    doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Fish " + id + " not found"))
+    doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Car " + id + " not found"))
         .when(svc).delete(id);
 
-    mvc.perform(delete("/api/fish/{id}", id))
+    mvc.perform(delete("/api/v1/car/{id}", id))
         .andExpect(status().isNotFound());
   }
 
@@ -136,3 +136,4 @@ class FishControllerTest {
     return new BigDecimal(value);
   }
 }
+

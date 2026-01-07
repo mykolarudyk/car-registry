@@ -1,9 +1,9 @@
-package com.example.backend.fish.infra;
+package com.example.backend.car.infra;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.example.backend.fish.domain.Fish;
+import com.example.backend.car.domain.Car;
 import jakarta.validation.ConstraintViolationException;
 import java.math.BigDecimal;
 import java.util.List;
@@ -12,30 +12,31 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 @DataJpaTest
-class FishRepositoryTest {
+class CarRepositoryTest {
 
   @Autowired
-  FishRepository repo;
+  CarRepository repo;
 
   @Test
   void saveAndFindAll() {
-    var f = new Fish("Nemo", "Clownfish", 10, new BigDecimal("0.25"));
-    repo.saveAndFlush(f);
+    var c = new Car("Camry", "Toyota", 2020, new BigDecimal("25000.00"));
+    repo.saveAndFlush(c);
 
-    List<Fish> all = repo.findAll();
+    List<Car> all = repo.findAll();
     assertThat(all).isNotEmpty();
     assertThat(all).allSatisfy(x -> {
-      assertThat(x.getName()).isEqualTo("Nemo");
-      assertThat(x.getSpecies()).isEqualTo("Clownfish");
-      assertThat(x.getLength()).isEqualTo(10);
-      assertThat(x.getWeight()).isEqualTo(new BigDecimal("0.25"));
+      assertThat(x.getModel()).isEqualTo("Camry");
+      assertThat(x.getBrand()).isEqualTo("Toyota");
+      assertThat(x.getProductionYear()).isEqualTo(2020);
+      assertThat(x.getPrice()).isEqualTo(new BigDecimal("25000.00"));
     });
   }
 
   @Test
   void validationConstraintsAreEnforced() {
-    var bad = new Fish("", "", 0, new BigDecimal("0.00"));
+    var bad = new Car("", "", 0, new BigDecimal("0.00"));
     assertThatThrownBy(() -> repo.saveAndFlush(bad))
         .isInstanceOf(ConstraintViolationException.class);
   }
 }
+

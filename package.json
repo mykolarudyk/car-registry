@@ -1,8 +1,8 @@
 {
-  "name": "fish-registry",
+  "name": "car-registry",
   "private": true,
   "scripts": {
-    "api": "cd backend && mvnw.cmd -q spring-boot:run",
+    "api": "cd backend && .\\mvnw.cmd -q spring-boot:run",
     "web": "cd frontend && ng serve",
     "dev": "concurrently -n api,web -c auto \"npm:api\" \"npm:web\""
   },

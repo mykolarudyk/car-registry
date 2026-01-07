@@ -6,8 +6,8 @@ Java 21 (project uses Spring Boot 3.5.6)
 Node.js (project uses 22.18), npm (10.9.3)
 Angular (20.1.6)
 
-git clone https://github.com/mykolarudyk/fish-registry.git
-cd fish-registry
+git clone https://github.com/mykolarudyk/car-registry.git
+cd car-registry
 
 # install concurrently
 npm install
@@ -29,24 +29,24 @@ backend/
 └─ src/
    ├─ main/java/com/example/backend/
    │  ├─ BackendApplication.java
-   │  ├─ BootstrapData.java                   # Seeds mock fish records on first run
+   │  ├─ BootstrapData.java                   # Seeds mock car records on first run
    │  ├─ common/CorsConfig.java               # CORS (allow requests from FE)
-   │  └─ fish/
+   │  └─ car/
    │     ├─ api/
-   │     │  ├─ FishController.java            # REST endpoints under /api/fish
-   │     │  └─ FishDtos.java                  # DTOs + validation
+   │     │  ├─ CarController.java            # REST endpoints under /api/car
+   │     │  └─ CarDtos.java                  # DTOs + validation
    │     ├─ app/
-   │     │  └─ FishService.java               # Application/service layer + 404 mapping
+   │     │  └─ CarService.java               # Application/service layer + 404 mapping
    │     ├─ domain/
-   │     │  └─ Fish.java                      # JPA entity with constraints
+   │     │  └─ Car.java                      # JPA entity with constraints
    │     └─ infra/
-   │        └─ FishRepository.java            # Spring Data JPA repository
+   │        └─ CarRepository.java            # Spring Data JPA repository
    └─ test/java/com/example/backend/
       ├─ BackendApplicationTests.java
-      └─ fish/
-         ├─ api/FishControllerTest.java
-         ├─ app/FishServiceTest.java
-         └─ infra/FishRepositoryTest.java
+      └─ car/
+         ├─ api/CarControllerTest.java
+         ├─ app/CarServiceTest.java
+         └─ infra/CarRepositoryTest.java
 
 -api  - contains controllers and DTOs
 -app - orchestration/business logic
@@ -60,22 +60,22 @@ frontend/
    ├─ app/
    │  ├─ app.ts / app.html / app.routes.ts
    │  ├─ components/
-   │  │  └─ fish/
-   │  │     └─ fish-list/
-   │  │        ├─ fish-list.component.ts
-   │  │        ├─ fish-list.component.html
-   │  │        └─ fish-list.component.scss
+   │  │  └─ car/
+   │  │     └─ car-list/
+   │  │        ├─ car-list.component.ts
+   │  │        ├─ car-list.component.html
+   │  │        └─ car-list.component.scss
    │  ├─ models/
-   │  │  ├─ fish.model.ts                # interface
+   │  │  ├─ car.model.ts                # interface
    │  │  └─ page.model.ts             # Page interface for backend pagination
    │  ├─ services/
-   │  │  └─ fish.service.ts               # HTTP client
+   │  │  └─ car.service.ts               # HTTP client
    └─ environments/
       └─ environment.ts                   # apiBase
 
 - Standart Angular structure
 - 3 folders - components, models and services for separation of concerns.
-When app grows - for example fish, cow, sheep - then it will be better to create features folder and store corresponding files inside respective subfolders.
+When app grows - for example car, motorcycle, truck - then it will be better to create features folder and store corresponding files inside respective subfolders.
  - components - UI only
  - services - data access
  - models - types only
@@ -111,8 +111,8 @@ Java 21 (prosjektet bruker Spring Boot 3.5.6)
 Node.js (prosjektet bruker 22.18), npm (10.9.3)
 Angular (20.1.6)
 
-git clone https://github.com/mykolarudyk/fish-registry.git
-cd fish-registry
+git clone https://github.com/mykolarudyk/car-registry.git
+cd car-registry
 
 # installer 'concurrently'
 npm install
@@ -135,24 +135,24 @@ backend/
 └─ src/
    ├─ main/java/com/example/backend/
    │  ├─ BackendApplication.java
-   │  ├─ BootstrapData.java                   # Fyller med eksempeldata for fisk ved første kjøring
+   │  ├─ BootstrapData.java                   # Fyller med eksempeldata for biler ved første kjøring
    │  ├─ common/CorsConfig.java               # CORS (tillater forespørsler fra frontend)
-   │  └─ fish/
+   │  └─ car/
    │     ├─ api/
-   │     │  ├─ FishController.java            # REST-endepunkter under /api/fish
-   │     │  └─ FishDtos.java                  # DTO-er + validering
+   │     │  ├─ CarController.java            # REST-endepunkter under /api/car
+   │     │  └─ CarDtos.java                  # DTO-er + validering
    │     ├─ app/
-   │     │  └─ FishService.java               # Applikasjons-/tjenestelag + 404-håndtering
+   │     │  └─ CarService.java               # Applikasjons-/tjenestelag + 404-håndtering
    │     ├─ domain/
-   │     │  └─ Fish.java                      # JPA-entitet med begrensninger
+   │     │  └─ Car.java                      # JPA-entitet med begrensninger
    │     └─ infra/
-   │        └─ FishRepository.java            # Spring Data JPA-repositorium
+   │        └─ CarRepository.java            # Spring Data JPA-repositorium
    └─ test/java/com/example/backend/
       ├─ BackendApplicationTests.java
-      └─ fish/
-         ├─ api/FishControllerTest.java
-         ├─ app/FishServiceTest.java
-         └─ infra/FishRepositoryTest.java
+      └─ car/
+         ├─ api/CarControllerTest.java
+         ├─ app/CarServiceTest.java
+         └─ infra/CarRepositoryTest.java
 
 
 api – inneholder controllere og DTO-er
@@ -167,16 +167,16 @@ frontend/
    ├─ app/
    │  ├─ app.ts / app.html / app.routes.ts
    │  ├─ components/
-   │  │  └─ fish/
-   │  │     └─ fish-list/
-   │  │        ├─ fish-list.component.ts
-   │  │        ├─ fish-list.component.html
-   │  │        └─ fish-list.component.scss
+   │  │  └─ car/
+   │  │     └─ car-list/
+   │  │        ├─ car-list.component.ts
+   │  │        ├─ car-list.component.html
+   │  │        └─ car-list.component.scss
    │  ├─ models/
-   │  │  ├─ fish.model.ts                # interface
+   │  │  ├─ car.model.ts                # interface
    │  │  └─ page.model.ts                # Page-interface for backend-paginering
    │  ├─ services/
-   │  │  └─ fish.service.ts              # HTTP-klient
+   │  │  └─ car.service.ts              # HTTP-klient
    └─ environments/
       └─ environment.ts                  # apiBase
 
@@ -184,7 +184,7 @@ frontend/
 Standard Angular-struktur
 
 3 mapper – components, models og services for «separation of concerns».
-Når appen vokser – f.eks. fish, cow, sheep – er det bedre å opprette en features-mappe og legge tilhørende filer i respektive undermapper.
+Når appen vokser – f.eks. car, motorcycle, truck – er det bedre å opprette en features-mappe og legge tilhørende filer i respektive undermapper.
 components – kun UI
 services – datatilgang
 models – kun typer

@@ -1,0 +1,202 @@
+<div class="page">
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  }
+
+  <div class="toolbar">
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="openCreateForm()"
+      [disabled]="showNewForm() || !!editingId() || creatingInline()"
+    >
+      Add car
+    </button>
+
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="openCreateInline()"
+      [disabled]="creatingInline() || !!editingId() || showNewForm()"
+      style="margin-left: 8px"
+    >
+      Add inline
+    </button>
+  </div>
+
+  @if (showNewForm()) {
+    <form
+      #createForm="ngForm"
+      class="mat-elevation-z2 car-form"
+      [formGroup]="newForm"
+      (ngSubmit)="create()"
+    >
+      <mat-form-field appearance="outline">
+        <mat-label>Model</mat-label>
+        <input matInput formControlName="model" />
+        @if (newForm.controls.model.invalid && (newForm.controls.model.touched || createForm.submitted)) {
+          <mat-error>Required</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Brand</mat-label>
+        <input matInput formControlName="brand" />
+        @if (newForm.controls.brand.invalid && (newForm.controls.brand.touched || createForm.submitted)) {
+          <mat-error>Required</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Production Year</mat-label>
+        <input matInput type="number" inputmode="numeric" [min]="1" [max]="CarConstants.PRODUCTION_YEAR_MAX" formControlName="productionYear" />
+        @if (newForm.controls.productionYear.hasError('required') && (newForm.controls.productionYear.touched || createForm.submitted)) {
+          <mat-error>Required</mat-error>
+        }
+        @if (newForm.controls.productionYear.hasError('min') && (newForm.controls.productionYear.touched || createForm.submitted)) {
+          <mat-error>Must be ≥ 1</mat-error>
+        }
+        @if (newForm.controls.productionYear.hasError('max') && (newForm.controls.productionYear.touched || createForm.submitted)) {
+          <mat-error>Must be ≤ {{ CarConstants.PRODUCTION_YEAR_MAX }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Price ($)</mat-label>
+        <input matInput type="number" step="0.01" min="0.01" max="99999999.99" formControlName="price" />
+        @if (newForm.controls.price.hasError('required') && (newForm.controls.price.touched || createForm.submitted)) {
+          <mat-error>Required</mat-error>
+        }
+        @if (newForm.controls.price.hasError('min') && (newForm.controls.price.touched || createForm.submitted)) {
+          <mat-error>Must be ≥ 0.01</mat-error>
+        }
+        @if (newForm.controls.price.hasError('max') && (newForm.controls.price.touched || createForm.submitted)) {
+          <mat-error>Must be ≤ 99,999,999.99</mat-error>
+        }
+      </mat-form-field>
+
+      <div class="form-actions">
+        <button mat-raised-button color="primary" type="submit" class="submit">Add</button>
+        <button mat-raised-button type="button" (click)="discardCreate()">Discard</button>
+      </div>
+    </form>
+  }
+
+  <div class="table-wrap">
+    <table
+      mat-table
+      [dataSource]="rows()"
+      matSort
+      [matSortActive]="'model'"
+      [matSortDirection]="'asc'"
+      class="mat-elevation-z2 data-table"
+    >
+      <ng-container matColumnDef="model">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="model">Model</th>
+        <td mat-cell *matCellDef="let c">
+          @if (isEditing(c.id)) {
+            <input class="inline-input" [formControl]="control(c, 'model')" aria-label="Model" />
+          } @else {
+            {{ c.model }}
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="brand">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="brand">Brand</th>
+        <td mat-cell *matCellDef="let c">
+          @if (isEditing(c.id)) {
+            <input class="inline-input" [formControl]="control(c, 'brand')" aria-label="Brand" />
+          } @else {
+            {{ c.brand }}
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="productionYear">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="productionYear">Production Year</th>
+        <td mat-cell *matCellDef="let c">
+          @if (isEditing(c.id)) {
+            <input
+              class="inline-input inline-number"
+              type="number"
+              inputmode="numeric"
+              [min]="1"
+              [max]="CarConstants.PRODUCTION_YEAR_MAX"
+              step="1"
+              [formControl]="control(c, 'productionYear')"
+              aria-label="Production Year"
+            />
+          } @else {
+            {{ c.productionYear }}
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="price">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="price">Price ($)</th>
+        <td mat-cell *matCellDef="let c">
+          @if (isEditing(c.id)) {
+            <input
+              class="inline-input inline-number"
+              type="number"
+              step="0.01"
+              min="0.01"
+              max="99999999.99"
+              [formControl]="control(c, 'price')"
+              aria-label="Price ($)"
+            />
+          } @else {
+            {{ c.price }}
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let c" class="actions">
+          @if (!isEditing(c.id)) {
+            <button
+              mat-icon-button
+              color="primary"
+              (click)="startEdit(c)"
+              aria-label="Edit"
+              [disabled]="(editingId() && !isEditing(c.id)) || showNewForm() || creatingInline()"
+            >
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" (click)="remove(c)" aria-label="Delete">
+              <mat-icon>delete</mat-icon>
+            </button>
+          } @else {
+            <button
+              mat-icon-button
+              color="primary"
+              (click)="save(c)"
+              [disabled]="rowInvalid(c)"
+              aria-label="Save"
+            >
+              <mat-icon>check</mat-icon>
+            </button>
+            <button mat-icon-button (click)="cancelEdit(c)" aria-label="Cancel">
+              <mat-icon>close</mat-icon>
+            </button>
+          }
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+    <mat-paginator
+      [length]="total()"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="pageSizeOptions"
+      showFirstLastButtons
+    />
+  </div>
+
+</div>
+

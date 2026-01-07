@@ -1,7 +1,7 @@
 package com.example.backend;
 
-import com.example.backend.fish.domain.Fish;
-import com.example.backend.fish.infra.FishRepository;
+import com.example.backend.car.domain.Car;
+import com.example.backend.car.infra.CarRepository;
 import java.math.BigDecimal;
 import java.util.List;
 import org.springframework.boot.CommandLineRunner;
@@ -11,27 +11,27 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class BootstrapData {
   @Bean
-  CommandLineRunner seedFish(FishRepository repo) {
+  CommandLineRunner seedCar(CarRepository repo) {
     return args -> {
       if (repo.count() == 0) {
         repo.saveAll(List.of(
-            new Fish("Bella", "Salmon", 70, new BigDecimal("3.20")),
-            new Fish("Spike", "Cod", 55, new BigDecimal("2.10")),
-            new Fish("Luna", "Trout", 42, new BigDecimal("1.05")),
-            new Fish("Nemo", "Clownfish", 15, new BigDecimal("0.15")),
-            new Fish("Dory", "Blue Tang", 18, new BigDecimal("0.20")),
-            new Fish("Goldie", "Goldfish", 10, new BigDecimal("0.10")),
-            new Fish("Bubbles", "Betta", 8, new BigDecimal("0.08")),
-            new Fish("Finn", "Guppy", 5, new BigDecimal("0.05")),
-            new Fish("Marlin", "Snapper", 60, new BigDecimal("2.50")),
-            new Fish("Coral", "Grouper", 80, new BigDecimal("4.00")),
-            new Fish("Shadow", "Catfish", 50, new BigDecimal("1.80")),
-            new Fish("Flash", "Mackerel", 45, new BigDecimal("1.20")),
-            new Fish("Sunny", "Tuna", 90, new BigDecimal("5.00")),
-            new Fish("Rocky", "Bass", 40, new BigDecimal("1.00")),
-            new Fish("Zeus", "Pike", 75, new BigDecimal("3.50")),
-            new Fish("Athena", "Perch", 30, new BigDecimal("0.70")),
-            new Fish("Cleo", "Carp", 35, new BigDecimal("0.90"))
+            new Car("Camry", "Toyota", 2020, new BigDecimal("25000.00")),
+            new Car("Civic", "Honda", 2019, new BigDecimal("22000.00")),
+            new Car("Corolla", "Toyota", 2021, new BigDecimal("23000.00")),
+            new Car("Accord", "Honda", 2022, new BigDecimal("28000.00")),
+            new Car("Altima", "Nissan", 2020, new BigDecimal("24000.00")),
+            new Car("Sentra", "Nissan", 2021, new BigDecimal("20000.00")),
+            new Car("Elantra", "Hyundai", 2022, new BigDecimal("21000.00")),
+            new Car("Sonata", "Hyundai", 2021, new BigDecimal("25000.00")),
+            new Car("Fusion", "Ford", 2019, new BigDecimal("18000.00")),
+            new Car("Malibu", "Chevrolet", 2020, new BigDecimal("22000.00")),
+            new Car("Impala", "Chevrolet", 2018, new BigDecimal("20000.00")),
+            new Car("Focus", "Ford", 2021, new BigDecimal("19000.00")),
+            new Car("Passat", "Volkswagen", 2022, new BigDecimal("27000.00")),
+            new Car("Jetta", "Volkswagen", 2021, new BigDecimal("23000.00")),
+            new Car("3 Series", "BMW", 2020, new BigDecimal("35000.00")),
+            new Car("C-Class", "Mercedes-Benz", 2021, new BigDecimal("40000.00")),
+            new Car("A4", "Audi", 2022, new BigDecimal("38000.00"))
         ));
       }
     };

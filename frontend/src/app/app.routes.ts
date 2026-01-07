@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
-import { FishListComponent } from './components/fish/fish-list/fish-list.component';
+import { CarListComponent } from './components/car/car-list/car-list.component';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'fish' },
-  { path: 'fish', component: FishListComponent },
-  { path: '**', redirectTo: 'fish' }
+  { path: '', pathMatch: 'full', redirectTo: 'car' },
+  { path: 'car', component: CarListComponent },
+  { path: '**', redirectTo: 'car' }
 ];
