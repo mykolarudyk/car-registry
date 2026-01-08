@@ -23,8 +23,9 @@ Frontend: http://localhost:4200
 H2 console: http://localhost:8080/h2
 
 2) How the code is structured and the rationale
-Backend structure - Maven standart layout
+Backend structure - Maven standard layout
 
+```
 backend/
 └─ src/
    ├─ main/java/com/example/backend/
@@ -47,14 +48,16 @@ backend/
          ├─ api/CarControllerTest.java
          ├─ app/CarServiceTest.java
          └─ infra/CarRepositoryTest.java
+```
 
--api  - contains controllers and DTOs
--app - orchestration/business logic
--domain - JPA entities
--infra - data access via Spring Data JPA
+- **api** - contains controllers and DTOs
+- **app** - orchestration/business logic
+- **domain** - JPA entities
+- **infra** - data access via Spring Data JPA
 
 Frontend structure
 
+```
 frontend/
 └─ src/
    ├─ app/
@@ -72,8 +75,9 @@ frontend/
    │  │  └─ car.service.ts               # HTTP client
    └─ environments/
       └─ environment.ts                   # apiBase
+```
 
-- Standart Angular structure
+- Standard Angular structure
 - 3 folders - components, models and services for separation of concerns.
 When app grows - for example car, motorcycle, truck - then it will be better to create features folder and store corresponding files inside respective subfolders.
  - components - UI only
@@ -131,6 +135,7 @@ H2-konsoll: http://localhost:8080/h2
 
 Backend-struktur – standard Maven-oppsett
 
+```
 backend/
 └─ src/
    ├─ main/java/com/example/backend/
@@ -153,15 +158,16 @@ backend/
          ├─ api/CarControllerTest.java
          ├─ app/CarServiceTest.java
          └─ infra/CarRepositoryTest.java
+```
 
-
-api – inneholder controllere og DTO-er
-app – orkestrering/forretningslogikk
-domain – JPA-entiteter
-infra – datatilgang via Spring Data JPA
+- **api** – inneholder controllere og DTO-er
+- **app** – orkestrering/forretningslogikk
+- **domain** – JPA-entiteter
+- **infra** – datatilgang via Spring Data JPA
 
 Frontend-struktur
 
+```
 frontend/
 └─ src/
    ├─ app/
@@ -179,6 +185,7 @@ frontend/
    │  │  └─ car.service.ts              # HTTP-klient
    └─ environments/
       └─ environment.ts                  # apiBase
+```
 
 
 Standard Angular-struktur
